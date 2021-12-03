@@ -12,6 +12,7 @@ class Point {
   }
 }
 //game segment
+let HITBOX = 10;
 let game = false;
 let gif = null;
 let frogGif = null;
@@ -30,6 +31,17 @@ let interFrame = [];
 let bridges = [];
 let lineCross = [];
 let segToRemove = [];
+let sound1 = null;
+let alertSound = null;
+let visibleFrog = false;
+let victorySound = null;
+let gameLevel = -1;
+let victoryGif1 = null;
+let victoryGif2 = null;
+let victoryGif3 = null;
+let gifTimer = 0;
+let victoryText = "";
+let nenuphars = [];
 //end game segment
 
 //test segment
@@ -70,6 +82,10 @@ function setup() {
   fill("black");
   textSize(40);
 
+  sound1 = new Audio("/ressources/marais.mp3");
+  alertSound = new Audio("/ressources/alert.mp3");
+  victorySound = new Audio("/ressources/victory.mp3");
+
   triangbox = createCheckbox("Triangulation", false);
   triangbox.position(POS + SIZE, POS);
   triangbox.style("color", "White");
@@ -105,15 +121,15 @@ function setup() {
   clearButton.size(80, 25);
   clearButton.mousePressed(clearPolygons);
 
-  gameButton = createButton("Start Game");
+  gameButton = createButton("Free Game");
   gameButton.position(POS + SIZE + 80 + 10, POS + 30 + 30);
   gameButton.size(80, 25);
   gameButton.mousePressed(startGame);
 
-  gameButton = createButton("Free Game");
+  gameButton = createButton("Stop Game");
   gameButton.position(POS + SIZE + 80 + 20 + 80, POS + 30 + 30);
   gameButton.size(80, 25);
-  gameButton.mousePressed(startGame);
+  gameButton.mousePressed(stopGame);
 
   level1Button = createButton("Level 1");
   level1Button.position(POS + SIZE, POS + 30 + 30 + 30);
@@ -125,8 +141,14 @@ function setup() {
   level2Button.size(80, 25);
   level2Button.mousePressed(level2);
 
+  level2Button = createButton("Level 3");
+  level2Button.position(POS + SIZE + 80 + 30 + 80, POS + 30 + 30 + 30);
+  level2Button.size(80, 25);
+  level2Button.mousePressed(level3);
+
   gif = loadImage("ressources/principal.gif");
   frogGif = loadImage("ressources/frog.gif");
+  victoryGif1 = loadImage("ressources/frogVictory.gif");
   gif.play();
   frogGif.play();
   princCoord.push(100, 100);
@@ -847,6 +869,7 @@ function switchJunction() {
 
 function clearPolygons() {
   game = false;
+  stopGame();
   firstDemo = true;
   firstDual = false;
   secondDual = false;
@@ -874,6 +897,11 @@ function RndNmb(a, b) {
 }
 
 function startGame() {
+  nenuphars = [];
+  gameLevel = 0;
+  visibleFrog = false;
+  sound1.play();
+  sound1.loop = true;
   game = true;
   firstDemo = false;
   POS = 10;
@@ -916,55 +944,38 @@ function startGame() {
 
 function level1() {
   startGame();
-  frogCoord = [];
+  gameLevel = 1;
+  frogCoord = [500, 500];
   let tempoly = [
     [
-      [50,80],
-      [650,80],
-      [650,50],
-      [50,50]
+      [314, 232],
+      [229, 351],
+      [369, 457],
+      [449, 335]
     ],
     [
-      [600,88],
-      [600,650],
-      [650,650],
-      [650,88]
+      [100, 297],
+      [53, 370],
+      [117, 426],
+      [161, 354]
     ],
     [
-      [50,650],
-      [50,680],
-      [598,680],
-      [595,650]
+      [600, 289],
+      [536, 345],
+      [576, 427],
+      [650, 352]
     ],
     [
-      [50,350],
-      [80,640],
-      [80,350],
-      [50,350]
+      [365, 531],
+      [308, 602],
+      [364, 668],
+      [421, 602]
     ],
     [
-      [80,340],
-      [80,50],
-      [50,50],
-      [50,340]
-    ],
-    [
-      [200,400],
-      [220,400],
-      [220,200],
-      [200,200]
-    ],
-    [
-      [200,190],
-      [200,170],
-      [350,170],
-      [350,190]
-    ],
-    [
-      [200,410],
-      [350,410],
-      [350,430],
-      [200,430]
+      [316, 69],
+      [265, 133],
+      [333, 186],
+      [373, 119]
     ]
   ];
   let temp = [];
@@ -979,56 +990,93 @@ function level1() {
 
 function level2() {
   startGame();
-  frogCoord = [];
+  gameLevel = 2;
+  frogCoord = [690, 300];
+  princCoord = [30, 100];
   let tempoly = [
     [
-      [35, 355],
-      [105, 350],
-      [85, 110],
-      [15, 150]
+      [308, 197],
+      [217, 298],
+      [345, 415],
+      [424, 285]
     ],
     [
-      [70, 510],
-      [90, 705],
-      [140, 705],
-      [140, 500]
+      [97, 253],
+      [46, 322],
+      [111, 390],
+      [152, 315]
     ],
     [
-      [65, 495],
-      [340, 495],
-      [340, 360],
-      [60, 370]
+      [595, 215],
+      [545, 293],
+      [593, 369],
+      [657, 287]
     ],
     [
-      [330, 705],
-      [360, 705],
-      [360, 650],
-      [330, 650]
+      [394, 446],
+      [351, 516],
+      [420, 569],
+      [443, 507]
     ],
     [
-      [600, 590],
-      [500, 480],
-      [355, 600],
-      [530, 690]
+      [559, 500],
+      [606, 563],
+      [653, 505],
+      [604, 427]
     ],
     [
-      [580, 530],
-      [690, 530],
-      [700, 230],
-      [570, 340]
+      [483, 337],
+      [445, 395],
+      [492, 447],
+      [529, 390]
     ],
     [
-      [250, 340],
-      [520, 330],
-      [510, 290],
-      [345, 145],
-      [200, 290]
+      [187, 380],
+      [139, 435],
+      [194, 482],
+      [237, 426]
     ],
     [
-      [300, 60],
-      [350, 50],
-      [340, 15],
-      [290, 15]
+      [257, 482],
+      [226, 530],
+      [264, 566],
+      [283, 522]
+    ],
+    [
+      [97, 463],
+      [54, 530],
+      [105, 575],
+      [144, 521]
+    ],
+    [
+      [190, 119],
+      [154, 196],
+      [197, 223],
+      [230, 166]
+    ],
+    [
+      [485, 108],
+      [444, 158],
+      [496, 206],
+      [536, 156]
+    ],
+    [
+      [334, 47],
+      [302, 100],
+      [349, 148],
+      [385, 92]
+    ],
+    [
+      [603, 40],
+      [565, 87],
+      [609, 132],
+      [633, 77]
+    ],
+    [
+      [99, 57],
+      [57, 112],
+      [105, 144],
+      [142, 93]
     ]
   ];
   let temp = [];
@@ -1039,10 +1087,136 @@ function level2() {
     }
     polygons.push(temp.slice());
   }
-  console.log(polygons);
+}
+
+function level3(vic = false) {
+  startGame();
+  gameLevel = 3;
+  frogCoord = [610, 400];
+  princCoord = [30, 100];
+  let tempoly = [
+    [
+      [233, 238],
+      [220, 435],
+      [275, 438],
+      [277, 241]
+    ],
+    [
+      [392, 246],
+      [381, 441],
+      [458, 431],
+      [451, 247]
+    ],
+    [
+      [247, 479],
+      [244, 533],
+      [423, 552],
+      [425, 474]
+    ],
+    [
+      [91, 369],
+      [68, 568],
+      [137, 577],
+      [148, 372]
+    ],
+    [
+      [524, 378],
+      [509, 584],
+      [601, 593],
+      [585, 383]
+    ],
+    [
+      [452, 169],
+      [451, 222],
+      [633, 227],
+      [630, 159]
+    ],
+    [
+      [50, 152],
+      [65, 221],
+      [209, 218],
+      [177, 147]
+    ],
+    [
+      [254, 146],
+      [253, 208],
+      [399, 216],
+      [402, 152]
+    ],
+    [
+      [173, 15],
+      [166, 84],
+      [234, 88],
+      [237, 13]
+    ],
+    [
+      [406, 13],
+      [397, 81],
+      [475, 78],
+      [471, 13]
+    ],
+    [
+      [523, 274],
+      [518, 321],
+      [657, 320],
+      [656, 270]
+    ],
+    [
+      [378, 615],
+      [527, 619],
+      [520, 670],
+      [362, 664]
+    ],
+    [
+      [117, 614],
+      [116, 669],
+      [265, 665],
+      [258, 608]
+    ],
+    [
+      [27, 270],
+      [26, 328],
+      [145, 320],
+      [139, 275]
+    ],
+    [
+      [547, 42],
+      [542, 126],
+      [590, 124],
+      [589, 37]
+    ],
+    [
+      [71, 50],
+      [70, 127],
+      [121, 123],
+      [122, 49]
+    ],
+    [
+      [636, 403],
+      [636, 469],
+      [705, 472],
+      [702, 401]
+    ]
+  ];
+  let temp = [];
+  for (let poly = 0; poly < tempoly.length; poly++) {
+    temp = [];
+    for (let point = 0; point < tempoly[poly].length; point++) {
+      temp.push(new Point(tempoly[poly][point][0], tempoly[poly][point][1]));
+    }
+    polygons.push(temp.slice());
+  }
 }
 
 function stopGame() {
+  gifTimer = 0;
+  visibleFrog = false;
+  sound1.pause();
+  sound1.currentTime = 0;
+  victorySound.pause();
+  victorySound.currentTime = 0;
+  alertSound.pause();
+  alertSound.currentTime = 0;
   polygons = [];
   game = false;
   firstDemo = true;
@@ -1290,11 +1464,21 @@ function draw() {
     let goRight = false;
     let goLeft = false;
 
+    fill("White");
+    textSize(14);
+    noStroke();
+    text(
+      "Put minimum 4 points with your mouse (in counter clockwise order) to create a convex polygon. \n Then press the 'escape' button to confirm it, the visibility of the 'fly' will be reduce by the polygon. \n If the fly do not see the frog the frog do not appeared (you can place as many polygons as you like) \n You can move the fly with the arrow keys ",
+      720,
+      150
+    );
+    stroke("Black");
     angle = 0;
     if (
       keyIsDown(LEFT_ARROW) &&
-      !isInsideApolygon(new Point(princCoord[0] - 5 - 6, princCoord[1])) &&
-      isInsideFrame(new Point(princCoord[0] - 5 - 5, princCoord[1]))
+      !isInsideApolygon(new Point(princCoord[0] - 5 - HITBOX, princCoord[1])) &&
+      isInsideFrame(new Point(princCoord[0] - 5 - HITBOX, princCoord[1])) &&
+      !isInPerimeterOfAPoint(princCoord[0] - 5, princCoord[1])
     ) {
       princCoord[0] -= 5;
       angle = 270;
@@ -1302,8 +1486,9 @@ function draw() {
     }
     if (
       keyIsDown(RIGHT_ARROW) &&
-      !isInsideApolygon(new Point(princCoord[0] + 5 + 6, princCoord[1])) &&
-      isInsideFrame(new Point(princCoord[0] + 5 + 5, princCoord[1]))
+      !isInsideApolygon(new Point(princCoord[0] + 5 + HITBOX, princCoord[1])) &&
+      isInsideFrame(new Point(princCoord[0] + 5 + HITBOX, princCoord[1])) &&
+      !isInPerimeterOfAPoint(princCoord[0] + 5, princCoord[1])
     ) {
       princCoord[0] += 5;
       angle = 90;
@@ -1311,8 +1496,9 @@ function draw() {
     }
     if (
       keyIsDown(UP_ARROW) &&
-      !isInsideApolygon(new Point(princCoord[0], princCoord[1] - 5 - 6)) &&
-      isInsideFrame(new Point(princCoord[0], princCoord[1] - 5 - 6))
+      !isInsideApolygon(new Point(princCoord[0], princCoord[1] - 5 - HITBOX)) &&
+      isInsideFrame(new Point(princCoord[0], princCoord[1] - 5 - HITBOX)) &&
+      !isInPerimeterOfAPoint(princCoord[0], princCoord[1] - 5)
     ) {
       princCoord[1] -= 5;
       angle = 0;
@@ -1324,8 +1510,9 @@ function draw() {
     }
     if (
       keyIsDown(DOWN_ARROW) &&
-      !isInsideApolygon(new Point(princCoord[0], princCoord[1] + 5 + 6)) &&
-      isInsideFrame(new Point(princCoord[0], princCoord[1] + 5 + 6))
+      !isInsideApolygon(new Point(princCoord[0], princCoord[1] + 5 + HITBOX)) &&
+      isInsideFrame(new Point(princCoord[0], princCoord[1] + 5 + HITBOX)) &&
+      !isInPerimeterOfAPoint(princCoord[0], princCoord[1] + 5)
     ) {
       princCoord[1] += 5;
       angle = 180;
@@ -1335,8 +1522,9 @@ function draw() {
         angle = 225;
       }
     }
-    if (keyIsDown(ESCAPE) && points.length >= 3) {
+    if (keyIsDown(ESCAPE) && points.length >= 4) {
       polygons.push(points);
+      displayPolygon();
       points = [];
     }
 
@@ -1366,21 +1554,67 @@ function draw() {
     if (
       isInsidePolygon(visibility, new Point(frogCoord[0], frogCoord[1])) &&
       polygonBefore(
-        100000000000,
+        100010001000,
         new Point(princCoord[0], princCoord[1]),
         visibility,
         new Point(frogCoord[0], frogCoord[1])
       ) === null
     ) {
+      if (!visibleFrog) {
+        visibleFrog = true;
+        alertSound.play();
+      }
       push();
       translate(frogCoord[0], frogCoord[1]);
       rotate(angle);
       image(frogGif, 0, 0, 32, 32);
       pop();
+    } else {
+      visibleFrog = false;
     }
     drawPolygon(visibility, "black", "yellow");
+    if (infrogPerimeter()) {
+      if (gameLevel === 1) {
+        victoryText = "Victory ! Level 1 completed";
+        victorySound.play();
+        gifTimer = Date.now();
+        gameLevel = 2;
+        victoryGif1.play();
+        level2();
+      } else if (gameLevel === 2) {
+        victorySound.play();
+        gifTimer = Date.now();
+        victoryText = "Victory ! Level 2 completed";
+        gameLevel = 3;
+        victoryGif1.play();
+        level3();
+      } else if (gameLevel === 3) {
+        victoryText = "Victory ! Level 3 completed\n You are now in free mode";
+        gifTimer = Date.now();
+        victorySound.play();
+        gameLevel = 0;
+        victoryGif1.play();
+        startGame();
+      } else {
+        startGame();
+      }
+    }
+    if (gifTimer !== 0 && Math.floor((gifTimer - Date.now()) / 1000) >= -4) {
+      fill("white");
+      rect(POS + 25, POS + 50, 650, 500);
+      textSize(54);
+      textFont("Helvetica");
+      fill("black");
+      text(victoryText, POS + 25, POS + 100);
+      textSize(40);
+
+      image(victoryGif1, POS + 350, POS + 300);
+    } else {
+      gifTimer = 0;
+      victoryGif1.pause();
+    }
   }
-  drawPolygon(frame);
+  if (!game) drawPolygon(frame);
 }
 
 function drawPolygon(polygon, color = "black", colorIn = "Nan") {
@@ -1412,25 +1646,41 @@ function mousePressed() {
   }
 }
 
-function displaySeg() {
+function displayPolygon() {
   let string = "[";
-  for (let i = 0; i < segList.length; i++) {
+  for (let i = 0; i < points.length; i++) {
     string +=
-      "[[" +
-      segList[i][0][0].toString() +
-      "," +
-      segList[i][0][1].toString() +
-      "],[" +
-      segList[i][1][0].toString() +
-      "," +
-      segList[i][1][1].toString() +
-      "]],";
+      "[" + points[i].x.toString() + "," + points[i].y.toString() + "],";
   }
   string += "]";
-  console.log(string);
+  //console.log(string);
 }
 
 // This Redraws the Canvas when resized
+
+function isInPerimeterOfAPoint(posix, posiy) {
+  for (let point = 0; point < visibility.length; point++) {
+    if (distance(visibility[point], new Point(posix, posiy)) < HITBOX) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function infrogPerimeter() {
+  let res = false;
+  if (
+    distance(
+      new Point(frogCoord[0], frogCoord[1]),
+      new Point(princCoord[0], princCoord[1])
+    ) <
+    HITBOX * 2
+  )
+    res = true;
+  return res;
+}
+
+function placeNenu(number) {}
 
 function distance(a, b) {
   let res = 0;
@@ -1472,7 +1722,6 @@ function aSleep(ms) {
 
 function computeVisibilityPolygon(q) {
   inprog = true;
-  //console.log("our polygs :", polygons);
   segments = [];
   interFrame = [];
   tg = [];
@@ -1537,7 +1786,7 @@ function computeVisibilityPolygon(q) {
       }
     }
   }
-
+  let backup = lighCopy(polygons);
   addIntersectToPoly();
 
   quicksortPoint = q;
@@ -1636,7 +1885,21 @@ function computeVisibilityPolygon(q) {
   }
   visibility = vis;
   inprog = false;
-  removeIntersectToPoly(); //marche pas
+  polygons = backup.slice();
+  //removeIntersectToPoly(); //marche pas
+}
+
+function lighCopy(polygon) {
+  let newpoly = [];
+  let temp = [];
+  for (let poly = 0; poly < polygon.length; poly++) {
+    temp = [];
+    for (let point = 0; point < polygon[poly].length; point++) {
+      temp.push(new Point(polygon[poly][point].x, polygon[poly][point].y));
+    }
+    newpoly.push(temp);
+  }
+  return newpoly;
 }
 
 function swap(list, index, empl) {
@@ -2273,7 +2536,6 @@ function intersectBefore(a, b, c, d, e, f) {
 function customQuicksort(a, b) {
   //en cas de null ==> -1
   res = 0;
-  //console.log("angle1");
   let angle1 = computeAngle(quicksortPoint, a);
   let angle2 = computeAngle(quicksortPoint, b);
   if (
