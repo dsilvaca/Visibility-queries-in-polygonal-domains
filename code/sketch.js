@@ -32,6 +32,7 @@ let bridges = [];
 let lineCross = [];
 let segToRemove = [];
 let sound1 = null;
+let sound2 = null;
 let alertSound = null;
 let visibleFrog = false;
 let victorySound = null;
@@ -41,7 +42,10 @@ let victoryGif2 = null;
 let victoryGif3 = null;
 let gifTimer = 0;
 let victoryText = "";
-let nenuphars = [];
+let levelSwitch = false;
+let font = null;
+let cadre = null;
+
 //end game segment
 
 //test segment
@@ -58,6 +62,7 @@ let tempSeg = [];
 
 //prerender segment
 let firstDemo = true;
+let stepText = "";
 let polygonsObstacles = [];
 let polygoneObs1 = [];
 let polygoneObs2 = [];
@@ -72,6 +77,7 @@ let thirdDual = false;
 let thirdDualGraph = [];
 let onlyJunction = false;
 let shortestPath = false;
+
 //end prerender
 
 //console.log = function () {};
@@ -82,9 +88,12 @@ function setup() {
   fill("black");
   textSize(40);
 
+  sound2 = new Audio("/ressources/muzike6.mp3");
   sound1 = new Audio("/ressources/marais.mp3");
   alertSound = new Audio("/ressources/alert.mp3");
-  victorySound = new Audio("/ressources/victory.mp3");
+  victorySound = new Audio("/ressources/victory2.mp3");
+
+  font = loadFont("ressources/BALTH.TTF");
 
   triangbox = createCheckbox("Triangulation", false);
   triangbox.position(POS + SIZE, POS);
@@ -111,9 +120,9 @@ function setup() {
   dualThirdButton.size(80, 25);
   dualThirdButton.mousePressed(thirdDualB);
 
-  hourGlassButton = createButton("HourGlasses");
+  hourGlassButton = createButton("Shortest paths");
   hourGlassButton.position(POS + SIZE + 80 + 140 + 20, POS + 30);
-  hourGlassButton.size(80, 25);
+  hourGlassButton.size(80 + 20, 25);
   hourGlassButton.mousePressed(shortest);
 
   clearButton = createButton("Clear");
@@ -149,6 +158,7 @@ function setup() {
   gif = loadImage("ressources/principal.gif");
   frogGif = loadImage("ressources/frog.gif");
   victoryGif1 = loadImage("ressources/frogVictory.gif");
+  cadre = loadImage("ressources/cadre.png");
   gif.play();
   frogGif.play();
   princCoord.push(100, 100);
@@ -818,12 +828,16 @@ function setup() {
 function switchTriangu() {
   if (this.checked()) {
     triangulation = true;
+    stepText =
+      "This is the first step of the optimised algorithm : \n Triangulating the free space (the space between the obstacles)";
   } else {
     triangulation = false;
   }
 }
 
 function firstDualB() {
+  stepText =
+    "After the triangulation, we need to take the dual planar graph of the triangulation";
   if (!firstDual) {
     firstDual = true;
     secondDual = false;
@@ -833,6 +847,8 @@ function firstDualB() {
 }
 
 function secondDualB() {
+  stepText =
+    "The second dual is obtained by recursivly removing all the vertices that are degree 1 in the dual planar graph of the triangulation";
   if (!secondDual) {
     firstDual = false;
     secondDual = true;
@@ -842,6 +858,8 @@ function secondDualB() {
 }
 
 function thirdDualB() {
+  stepText =
+    "The third dual is obtained by removing all vertices of degree 2 from the second dual and replace it by a single edge between the two neighbours";
   if (!thirdDual) {
     firstDual = false;
     secondDual = false;
@@ -851,6 +869,8 @@ function thirdDualB() {
 }
 
 function shortest() {
+  stepText =
+    'The hourglasses are found by taking the vertices of the obstacles that are part of a junction triangle,\n once we have this set of vertices, we connect the vertices from this set that are on the same obstacle  using a shortest path. \nIf we remove the junction triangles, we have the free space divided in multiple subpolygons, \n the ones between the obstacles are called "hourglasses" and the ones between the obstacles \n and the boundaries of the free space are part of the ocean M';
   if (!shortestPath) {
     firstDual = false;
     secondDual = false;
@@ -861,6 +881,8 @@ function shortest() {
 
 function switchJunction() {
   if (this.checked()) {
+    stepText =
+      "Now, we have the junction triangles, these triangles are the ones from the first triangulation in which there is still a vertex (when looking at the third dual) \n PS : you need to disable the triangulation to saw them";
     onlyJunction = true;
   } else {
     onlyJunction = false;
@@ -897,10 +919,16 @@ function RndNmb(a, b) {
 }
 
 function startGame() {
+  stepText =
+    "Put minimum 4 points with your mouse (in counter clockwise order) to create a convex polygon. \n Then press the escape button to confirm it, the visibility of the fly will be reduce by the polygon. \n If the fly do not see the frog the frog do not appeared (you can place as many polygons as you like) \n You can move the fly with the arrow keys ";
   nenuphars = [];
   gameLevel = 0;
   visibleFrog = false;
   sound1.play();
+  if (!levelSwitch) {
+    sound2.play();
+    sound2.loop = true;
+  }
   sound1.loop = true;
   game = true;
   firstDemo = false;
@@ -944,6 +972,7 @@ function startGame() {
 
 function level1() {
   startGame();
+  stepText = "";
   gameLevel = 1;
   frogCoord = [500, 500];
   let tempoly = [
@@ -990,6 +1019,7 @@ function level1() {
 
 function level2() {
   startGame();
+  stepText = "";
   gameLevel = 2;
   frogCoord = [690, 300];
   princCoord = [30, 100];
@@ -1089,8 +1119,9 @@ function level2() {
   }
 }
 
-function level3(vic = false) {
+function level3() {
   startGame();
+  stepText = "";
   gameLevel = 3;
   frogCoord = [610, 400];
   princCoord = [30, 100];
@@ -1209,10 +1240,14 @@ function level3(vic = false) {
 }
 
 function stopGame() {
+  stepText = "";
   gifTimer = 0;
   visibleFrog = false;
+  levelSwitch = false;
   sound1.pause();
   sound1.currentTime = 0;
+  sound2.pause();
+  sound2.currentTime = 0;
   victorySound.pause();
   victorySound.currentTime = 0;
   alertSound.pause();
@@ -1276,8 +1311,12 @@ function createAShort(short) {
 }
 
 function draw() {
-  if (game) background("#255773");
-  else background("#c0c2c4");
+  background("#c0c2c4");
+  if (game) {
+    fill("#255773");
+    rect(POS, POS, 700, 700);
+    fill("black");
+  }
   if (firstDemo) {
     SIZE = 600;
     frame = [];
@@ -1393,6 +1432,11 @@ function draw() {
       ];
       let short2 = [
         [
+          [19, 5],
+          [17, 6]
+        ],
+
+        [
           [17, 6],
           [17, 12]
         ],
@@ -1450,11 +1494,81 @@ function draw() {
           [36, 20]
         ]
       ];
-      stroke("green");
+
+      let short5 = [
+        [
+          [8, 3],
+          [3, 8]
+        ],
+        [
+          [3, 8],
+          [3, 14]
+        ],
+
+        [
+          [3, 14],
+          [2, 20]
+        ],
+        [
+          [2, 20],
+          [2, 27]
+        ],
+        [
+          [2, 27],
+          [9, 29]
+        ]
+      ];
+
+      let short6 = [
+        [
+          [34, 6],
+          [37, 6]
+        ],
+        [
+          [37, 6],
+          [37, 19]
+        ],
+
+        [
+          [37, 19],
+          [36, 20]
+        ]
+      ];
+      let short7 = [
+        [
+          [23, 27],
+          [33, 27]
+        ],
+        [
+          [33, 27],
+          [33, 22]
+        ]
+      ];
+
+      let short8 = [
+        [
+          [19, 5],
+          [23, 5]
+        ]
+      ];
+
+      stroke("blue");
       createAShort(short1);
+      stroke("orange");
       createAShort(short2);
+      stroke("green");
       createAShort(short3);
+      stroke("grey");
       createAShort(short4);
+      stroke("brown");
+      createAShort(short5);
+      stroke("purple");
+      createAShort(short6);
+      stroke("pink");
+      createAShort(short7);
+      stroke("cyan");
+      createAShort(short8);
+
       stroke("black");
     }
   }
@@ -1464,15 +1578,6 @@ function draw() {
     let goRight = false;
     let goLeft = false;
 
-    fill("White");
-    textSize(14);
-    noStroke();
-    text(
-      "Put minimum 4 points with your mouse (in counter clockwise order) to create a convex polygon. \n Then press the 'escape' button to confirm it, the visibility of the 'fly' will be reduce by the polygon. \n If the fly do not see the frog the frog do not appeared (you can place as many polygons as you like) \n You can move the fly with the arrow keys ",
-      720,
-      150
-    );
-    stroke("Black");
     angle = 0;
     if (
       keyIsDown(LEFT_ARROW) &&
@@ -1538,7 +1643,7 @@ function draw() {
     pop();
     if (polygons.length !== 0) {
       for (poly in polygons) {
-        drawPolygon(polygons[poly], "#1b361a");
+        drawPolygon(polygons[poly], "#232f30", "rock");
       }
     }
     if (points.length > 2) {
@@ -1572,56 +1677,79 @@ function draw() {
     } else {
       visibleFrog = false;
     }
-    drawPolygon(visibility, "black", "yellow");
+    drawPolygon(visibility, "black", "light");
     if (infrogPerimeter()) {
       if (gameLevel === 1) {
-        victoryText = "Victory ! Level 1 completed";
+        victoryText = "Level 1 completed";
+        sound2.pause();
+        levelSwitch = true;
         victorySound.play();
         gifTimer = Date.now();
         gameLevel = 2;
         victoryGif1.play();
         level2();
       } else if (gameLevel === 2) {
+        sound2.pause();
+        levelSwitch = true;
         victorySound.play();
         gifTimer = Date.now();
-        victoryText = "Victory ! Level 2 completed";
+        victoryText = "Level 2 completed";
         gameLevel = 3;
         victoryGif1.play();
         level3();
       } else if (gameLevel === 3) {
-        victoryText = "Victory ! Level 3 completed\n You are now in free mode";
+        levelSwitch = true;
+        victoryText = "Level 3 completed\n \nYou are now in free mode";
         gifTimer = Date.now();
+        sound2.pause();
         victorySound.play();
         gameLevel = 0;
         victoryGif1.play();
         startGame();
       } else {
+        levelSwitch = false;
         startGame();
       }
     }
     if (gifTimer !== 0 && Math.floor((gifTimer - Date.now()) / 1000) >= -4) {
-      fill("white");
+      fill(147, 137, 137, 87);
       rect(POS + 25, POS + 50, 650, 500);
+      image(cadre, POS + 350, POS + 300);
+      textFont(font);
       textSize(54);
-      textFont("Helvetica");
-      fill("black");
-      text(victoryText, POS + 25, POS + 100);
+      //textFont("Helvetica");
+
+      fill("#c5cbc5");
+      text("Victory", POS + 260, POS + 150);
+      text(victoryText, POS + 170, POS + 470);
       textSize(40);
 
       image(victoryGif1, POS + 350, POS + 300);
     } else {
       gifTimer = 0;
       victoryGif1.pause();
+      sound2.play();
+      sound2.loop = true;
     }
   }
   if (!game) drawPolygon(frame);
+  noStroke();
+  fill("White");
+  textFont("Helvetica");
+  textSize(14);
+  text(stepText, 720, 150);
+  stroke("Black");
 }
 
-function drawPolygon(polygon, color = "black", colorIn = "Nan") {
+function drawPolygon(polygon, color = "black", filling = "Nan") {
   stroke(color);
-  if (colorIn === "Nan") noFill();
-  else {
+  if (filling === "Nan") noFill();
+  else if (filling === "light") {
     fill(252, 237, 71, 50);
+    noStroke();
+  } else if (filling === "rock") {
+    fill(35, 47, 48, 85);
+    //noFill()
   }
   beginShape();
   for (let indexP = 0; indexP < polygon.length; indexP++) {
@@ -1639,7 +1767,8 @@ function mousePressed() {
     mouseX >= POS &&
     mouseY >= POS &&
     mouseY < SIZE + POS - 1 &&
-    mouseX < SIZE + POS - 1
+    mouseX < SIZE + POS - 1 &&
+    gameLevel === 0
   ) {
     //can't draw point behind buttons
     points.push(new Point(mouseX, mouseY));
@@ -1674,7 +1803,7 @@ function infrogPerimeter() {
       new Point(frogCoord[0], frogCoord[1]),
       new Point(princCoord[0], princCoord[1])
     ) <
-    HITBOX * 2
+    HITBOX * 2.5
   )
     res = true;
   return res;
